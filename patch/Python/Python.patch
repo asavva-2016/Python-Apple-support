@@ -528,6 +528,19 @@ diff --git a/Misc/platform_triplet.c b/Misc/platform_triplet.c
 index ec0857a4a99..2350e9dc821 100644
 --- a/Misc/platform_triplet.c
 +++ b/Misc/platform_triplet.c
+@@ -253,6 +253,12 @@
+ PLATFORM_TRIPLET=x86_64-iphonesimulator
+ #      else
+ PLATFORM_TRIPLET=arm64-iphonesimulator
++#      endif
++#    elif defined(TARGET_OS_MACCATALYST) && TARGET_OS_MACCATALYST
++#      if __x86_64__
++PLATFORM_TRIPLET=x86_64-iphoneos
++#      else
++PLATFORM_TRIPLET=arm64-iphoneos
+ #      endif
+ #    else
+ PLATFORM_TRIPLET=arm64-iphoneos
 @@ -257,6 +257,26 @@
  #    else
  PLATFORM_TRIPLET=arm64-iphoneos
@@ -739,8 +752,8 @@ index faeed0b7125..dfe0fa2acd8 100644
  "_bisect",
 diff --git a/configure b/configure
 index ae70f02f70e..af518f926d8 100755
---- a/configure
-+++ b/configure
+--- a/configure	2024-12-03 17:59:52
++++ b/configure	2025-01-26 20:12:09
 @@ -978,6 +978,8 @@
  CFLAGS
  CC
@@ -750,19 +763,19 @@ index ae70f02f70e..af518f926d8 100755
  IPHONEOS_DEPLOYMENT_TARGET
  EXPORT_MACOSX_DEPLOYMENT_TARGET
  CONFIGURE_MACOSX_DEPLOYMENT_TARGET
-@@ -4054,6 +4056,12 @@
+@@ -4053,6 +4055,12 @@
+ 		;;
  	*-apple-ios*)
  		ac_sys_system=iOS
- 		;;
++		;;
 +	*-apple-tvos*)
 +		ac_sys_system=tvOS
 +		;;
 +	*-apple-watchos*)
 +		ac_sys_system=watchOS
-+		;;
+ 		;;
  	*-*-vxworks*)
  	    ac_sys_system=VxWorks
- 	    ;;
 @@ -4108,7 +4116,7 @@
  # On cross-compile builds, configure will look for a host-specific compiler by
  # prepending the user-provided host triple to the required binary name.
@@ -772,7 +785,7 @@ index ae70f02f70e..af518f926d8 100755
  # which isn't a binary that exists, and isn't very convenient, as it contains the
  # iOS version. As the default cross-compiler name won't exist, configure falls
  # back to gcc, which *definitely* won't work. We're providing wrapper scripts for
-@@ -4123,6 +4131,14 @@
+@@ -4123,6 +4131,15 @@
  		aarch64-apple-ios*-simulator) AR=arm64-apple-ios-simulator-ar ;;
  		aarch64-apple-ios*)           AR=arm64-apple-ios-ar ;;
  		x86_64-apple-ios*-simulator)  AR=x86_64-apple-ios-simulator-ar ;;
@@ -784,10 +797,11 @@ index ae70f02f70e..af518f926d8 100755
 +		aarch64-apple-watchos*-simulator) AR=arm64-apple-watchos-simulator-ar ;;
 +		aarch64-apple-watchos*)           AR=arm64_32-apple-watchos-ar ;;
 +		x86_64-apple-watchos*-simulator)  AR=x86_64-apple-watchos-simulator-ar ;;
++		x86_64-apple-ios*-macabi)  AR=x86_64-apple-ios-macabi-ar ;;
  		*)
  	esac
  fi
-@@ -4131,6 +4147,14 @@
+@@ -4131,6 +4148,15 @@
  		aarch64-apple-ios*-simulator) CC=arm64-apple-ios-simulator-clang ;;
  		aarch64-apple-ios*)           CC=arm64-apple-ios-clang ;;
  		x86_64-apple-ios*-simulator)  CC=x86_64-apple-ios-simulator-clang ;;
@@ -799,10 +813,11 @@ index ae70f02f70e..af518f926d8 100755
 +		aarch64-apple-watchos*-simulator) CC=arm64-apple-watchos-simulator-clang ;;
 +		aarch64-apple-watchos*)           CC=arm64_32-apple-watchos-clang ;;
 +		x86_64-apple-watchos*-simulator)  CC=x86_64-apple-watchos-simulator-clang ;;
++		x86_64-apple-ios*-macabi)  CC=x86_64-apple-ios-macabi-clang ;;
  		*)
  	esac
  fi
-@@ -4139,6 +4163,14 @@
+@@ -4139,6 +4165,15 @@
  		aarch64-apple-ios*-simulator) CPP=arm64-apple-ios-simulator-cpp ;;
  		aarch64-apple-ios*)           CPP=arm64-apple-ios-cpp ;;
  		x86_64-apple-ios*-simulator)  CPP=x86_64-apple-ios-simulator-cpp ;;
@@ -814,10 +829,11 @@ index ae70f02f70e..af518f926d8 100755
 +		aarch64-apple-watchos*-simulator) CPP=arm64-apple-watchos-simulator-cpp ;;
 +		aarch64-apple-watchos*)           CPP=arm64_32-apple-watchos-cpp ;;
 +		x86_64-apple-watchos*-simulator)  CPP=x86_64-apple-watchos-simulator-cpp ;;
++		x86_64-apple-ios*-macabi)  CPP=x86_64-apple-ios-macabi-cpp ;;
  		*)
  	esac
  fi
-@@ -4147,6 +4179,14 @@
+@@ -4147,6 +4182,15 @@
  		aarch64-apple-ios*-simulator) CXX=arm64-apple-ios-simulator-clang++ ;;
  		aarch64-apple-ios*)           CXX=arm64-apple-ios-clang++ ;;
  		x86_64-apple-ios*-simulator)  CXX=x86_64-apple-ios-simulator-clang++ ;;
@@ -829,10 +845,11 @@ index ae70f02f70e..af518f926d8 100755
 +		aarch64-apple-watchos*-simulator) CXX=arm64-apple-watchos-simulator-clang++ ;;
 +		aarch64-apple-watchos*)           CXX=arm64_32-apple-watchos-clang++ ;;
 +		x86_64-apple-watchos*-simulator)  CXX=x86_64-apple-watchos-simulator-clang++ ;;
++		x86_64-apple-ios*-macabi)  CXX=x86_64-apple-ios-macabi-clang++ ;;
  		*)
  	esac
  fi
-@@ -4267,8 +4307,10 @@
+@@ -4267,8 +4311,10 @@
  	case $enableval in
  	yes)
  		case $ac_sys_system in
@@ -845,7 +862,7 @@ index ae70f02f70e..af518f926d8 100755
  			*) as_fn_error $? "Unknown platform for framework build" "$LINENO" 5
  		esac
  	esac
-@@ -4277,6 +4319,8 @@
+@@ -4277,6 +4323,8 @@
  	no)
  		case $ac_sys_system in
  			iOS) as_fn_error $? "iOS builds must use --enable-framework" "$LINENO" 5 ;;
@@ -854,11 +871,10 @@ index ae70f02f70e..af518f926d8 100755
  			*)
  				PYTHONFRAMEWORK=
  				PYTHONFRAMEWORKDIR=no-framework
-@@ -4383,6 +4427,36 @@
- 
+@@ -4384,6 +4432,36 @@
  				ac_config_files="$ac_config_files iOS/Resources/Info.plist"
  
-+				;;
+ 				;;
 +			tvOS) :
 +				FRAMEWORKINSTALLFIRST="frameworkinstallunversionedstructure"
 +				FRAMEWORKALTINSTALLFIRST="frameworkinstallunversionedstructure "
@@ -888,10 +904,11 @@ index ae70f02f70e..af518f926d8 100755
 +
 +				ac_config_files="$ac_config_files watchOS/Resources/Info.plist"
 +
- 				;;
++				;;
  			*)
  				as_fn_error $? "Unknown platform for framework build" "$LINENO" 5
-@@ -4394,6 +4468,8 @@
+ 				;;
+@@ -4394,6 +4472,8 @@
  
  	case $ac_sys_system in
  		iOS) as_fn_error $? "iOS builds must use --enable-framework" "$LINENO" 5 ;;
@@ -900,7 +917,7 @@ index ae70f02f70e..af518f926d8 100755
  		*)
  			PYTHONFRAMEWORK=
  			PYTHONFRAMEWORKDIR=no-framework
-@@ -4447,8 +4523,8 @@
+@@ -4447,8 +4527,8 @@
      case "$withval" in
      yes)
        case $ac_sys_system in
@@ -911,7 +928,7 @@ index ae70f02f70e..af518f926d8 100755
            APP_STORE_COMPLIANCE_PATCH="Mac/Resources/app-store-compliance.patch"
            ;;
          *) as_fn_error $? "no default app store compliance patch available for $ac_sys_system" "$LINENO" 5 ;;
-@@ -4466,8 +4542,8 @@
+@@ -4466,8 +4546,8 @@
  else $as_nop
  
      case $ac_sys_system in
@@ -922,10 +939,13 @@ index ae70f02f70e..af518f926d8 100755
          APP_STORE_COMPLIANCE_PATCH="Mac/Resources/app-store-compliance.patch"
          { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: applying default app store compliance patch" >&5
  printf "%s\n" "applying default app store compliance patch" >&6; }
-@@ -4521,6 +4597,50 @@
+@@ -4518,9 +4598,53 @@
  				;;
- 		esac
- 		;;
+ 			*)
+ 				_host_ident=${IPHONEOS_DEPLOYMENT_TARGET}-$host_cpu-iphone${_host_device}
++				;;
++		esac
++		;;
 +	*-apple-tvos*)
 +		_host_os=`echo $host | cut -d '-' -f3`
 +		_host_device=`echo $host | cut -d '-' -f4`
@@ -945,9 +965,9 @@ index ae70f02f70e..af518f926d8 100755
 +				;;
 +			*)
 +				_host_ident=${TVOS_DEPLOYMENT_TARGET}-$host_cpu-appletv${_host_device}
-+				;;
-+		esac
-+		;;
+ 				;;
+ 		esac
+ 		;;
 +	*-apple-watchos*)
 +		_host_os=`echo $host | cut -d '-' -f3`
 +		_host_device=`echo $host | cut -d '-' -f4`
@@ -973,7 +993,7 @@ index ae70f02f70e..af518f926d8 100755
  	*-*-vxworks*)
  		_host_ident=$host_cpu
  		;;
-@@ -4599,9 +4719,13 @@
+@@ -4599,9 +4723,13 @@
      define_xopen_source=no;;
    Darwin/[12][0-9].*)
      define_xopen_source=no;;
@@ -988,27 +1008,30 @@ index ae70f02f70e..af518f926d8 100755
    # On QNX 6.3.2, defining _XOPEN_SOURCE prevents netdb.h from
    # defining NI_NUMERICHOST.
    QNX/6.3.2)
-@@ -4664,7 +4788,10 @@
+@@ -4664,9 +4792,12 @@
  CONFIGURE_MACOSX_DEPLOYMENT_TARGET=
  EXPORT_MACOSX_DEPLOYMENT_TARGET='#'
  
 -# Record the value of IPHONEOS_DEPLOYMENT_TARGET enforced by the selected host triple.
 +# Record the value of IPHONEOS_DEPLOYMENT_TARGET / TVOS_DEPLOYMENT_TARGET /
 +# WATCHOS_DEPLOYMENT_TARGET enforced by the selected host triple.
-+
-+
  
  
++
++
  # checks for alternative programs
-@@ -4705,6 +4832,16 @@
+ 
+ # compiler flags are generated in two sets, BASECFLAGS and OPT.  OPT is just
+@@ -4704,7 +4835,17 @@
+ 
      as_fn_append CFLAGS " -mios-version-min=${IPHONEOS_DEPLOYMENT_TARGET}"
      as_fn_append LDFLAGS " -mios-version-min=${IPHONEOS_DEPLOYMENT_TARGET}"
-    ;; #(
++   ;; #(
 +  tvOS) :
 +
 +    as_fn_append CFLAGS " -mtvos-version-min=${TVOS_DEPLOYMENT_TARGET}"
 +    as_fn_append LDFLAGS " -mtvos-version-min=${TVOS_DEPLOYMENT_TARGET}"
-+   ;; #(
+    ;; #(
 +  watchOS) :
 +
 +    as_fn_append CFLAGS " -mwatchos-version-min=${WATCHOS_DEPLOYMENT_TARGET}"
@@ -1017,18 +1040,18 @@ index ae70f02f70e..af518f926d8 100755
    *) :
       ;;
  esac
-@@ -7006,6 +7143,10 @@
+@@ -7005,6 +7146,10 @@
+   Darwin*) :
      MULTIARCH="" ;; #(
    iOS) :
-     MULTIARCH="" ;; #(
++    MULTIARCH="" ;; #(
 +  tvOS) :
 +    MULTIARCH="" ;; #(
 +  watchOS) :
-+    MULTIARCH="" ;; #(
+     MULTIARCH="" ;; #(
    FreeBSD*) :
      MULTIARCH="" ;; #(
-   *) :
-@@ -7026,7 +7167,7 @@
+@@ -7026,7 +7171,7 @@
  printf "%s\n" "$MULTIARCH" >&6; }
  
  case $ac_sys_system in #(
@@ -1037,10 +1060,12 @@ index ae70f02f70e..af518f926d8 100755
      SOABI_PLATFORM=`echo "$PLATFORM_TRIPLET" | cut -d '-' -f2` ;; #(
    *) :
      SOABI_PLATFORM=$PLATFORM_TRIPLET
-@@ -7077,6 +7218,14 @@
+@@ -7077,6 +7222,16 @@
      PY_SUPPORT_TIER=3 ;; #(
      aarch64-apple-ios*/clang) :
      PY_SUPPORT_TIER=3 ;; #(
++    x86_64-apple-ios*/clang) :
++    PY_SUPPORT_TIER=3 ;; #(
 +    aarch64-apple-tvos*-simulator/clang) :
 +    PY_SUPPORT_TIER=3 ;; #(
 +    aarch64-apple-tvos*/clang) :
@@ -1052,7 +1077,7 @@ index ae70f02f70e..af518f926d8 100755
      aarch64-*-linux-android/clang) :
      PY_SUPPORT_TIER=3 ;; #(
      x86_64-*-linux-android/clang) :
-@@ -7550,7 +7699,7 @@
+@@ -7550,7 +7705,7 @@
    case $ac_sys_system in
      Darwin)
        LDLIBRARY='$(PYTHONFRAMEWORKDIR)/Versions/$(VERSION)/$(PYTHONFRAMEWORK)';;
@@ -1061,7 +1086,7 @@ index ae70f02f70e..af518f926d8 100755
        LDLIBRARY='$(PYTHONFRAMEWORKDIR)/$(PYTHONFRAMEWORK)';;
      *)
        as_fn_error $? "Unknown platform for framework build" "$LINENO" 5;;
-@@ -7616,7 +7765,7 @@
+@@ -7616,7 +7771,7 @@
        BLDLIBRARY='-L. -lpython$(LDVERSION)'
        RUNSHARED=DYLD_LIBRARY_PATH=`pwd`${DYLD_LIBRARY_PATH:+:${DYLD_LIBRARY_PATH}}
        ;;
@@ -1070,7 +1095,7 @@ index ae70f02f70e..af518f926d8 100755
        LDLIBRARY='libpython$(LDVERSION).dylib'
        ;;
      AIX*)
-@@ -12955,7 +13104,7 @@
+@@ -12955,7 +13110,7 @@
  			BLDSHARED="$LDSHARED"
  		fi
  		;;
@@ -1079,7 +1104,7 @@ index ae70f02f70e..af518f926d8 100755
  		LDSHARED='$(CC) -dynamiclib -F . -framework $(PYTHONFRAMEWORK)'
  		LDCXXSHARED='$(CXX) -dynamiclib -F . -framework $(PYTHONFRAMEWORK)'
  		BLDSHARED="$LDSHARED"
-@@ -13088,7 +13237,7 @@
+@@ -13088,7 +13243,7 @@
  	Linux-android*) LINKFORSHARED="-pie -Xlinker -export-dynamic";;
  	Linux*|GNU*) LINKFORSHARED="-Xlinker -export-dynamic";;
  	# -u libsys_s pulls in all symbols in libsys
@@ -1088,7 +1113,7 @@ index ae70f02f70e..af518f926d8 100755
  		LINKFORSHARED="$extra_undefs -framework CoreFoundation"
  
  		# Issue #18075: the default maximum stack size (8MBytes) is too
-@@ -13112,7 +13261,7 @@
+@@ -13112,7 +13267,7 @@
  				LINKFORSHARED="$LINKFORSHARED "'$(PYTHONFRAMEWORKDIR)/Versions/$(VERSION)/$(PYTHONFRAMEWORK)'
  			fi
  			LINKFORSHARED="$LINKFORSHARED"
@@ -1097,7 +1122,7 @@ index ae70f02f70e..af518f926d8 100755
  			LINKFORSHARED="-Wl,-stack_size,$stack_size $LINKFORSHARED "'$(PYTHONFRAMEWORKDIR)/$(PYTHONFRAMEWORK)'
  		fi
  		;;
-@@ -14511,7 +14660,7 @@
+@@ -14511,7 +14666,7 @@
  
              ctypes_malloc_closure=yes
       ;; #(
@@ -1106,23 +1131,24 @@ index ae70f02f70e..af518f926d8 100755
  
        ctypes_malloc_closure=yes
       ;; #(
-@@ -17962,12 +18111,6 @@
- then :
+@@ -17963,12 +18118,6 @@
    printf "%s\n" "#define HAVE_DUP3 1" >>confdefs.h
  
--fi
+ fi
 -ac_fn_c_check_func "$LINENO" "execv" "ac_cv_func_execv"
 -if test "x$ac_cv_func_execv" = xyes
 -then :
 -  printf "%s\n" "#define HAVE_EXECV 1" >>confdefs.h
 -
- fi
+-fi
  ac_fn_c_check_func "$LINENO" "explicit_bzero" "ac_cv_func_explicit_bzero"
  if test "x$ac_cv_func_explicit_bzero" = xyes
-@@ -18028,18 +18171,6 @@
+ then :
+@@ -18027,18 +18176,6 @@
+ if test "x$ac_cv_func_fexecve" = xyes
  then :
    printf "%s\n" "#define HAVE_FEXECVE 1" >>confdefs.h
- 
+-
 -fi
 -ac_fn_c_check_func "$LINENO" "fork" "ac_cv_func_fork"
 -if test "x$ac_cv_func_fork" = xyes
@@ -1134,15 +1160,13 @@ index ae70f02f70e..af518f926d8 100755
 -if test "x$ac_cv_func_fork1" = xyes
 -then :
 -  printf "%s\n" "#define HAVE_FORK1 1" >>confdefs.h
--
+ 
  fi
  ac_fn_c_check_func "$LINENO" "fpathconf" "ac_cv_func_fpathconf"
- if test "x$ac_cv_func_fpathconf" = xyes
-@@ -18466,24 +18597,6 @@
- then :
+@@ -18467,24 +18604,6 @@
    printf "%s\n" "#define HAVE_POSIX_OPENPT 1" >>confdefs.h
  
--fi
+ fi
 -ac_fn_c_check_func "$LINENO" "posix_spawn" "ac_cv_func_posix_spawn"
 -if test "x$ac_cv_func_posix_spawn" = xyes
 -then :
@@ -1160,23 +1184,24 @@ index ae70f02f70e..af518f926d8 100755
 -then :
 -  printf "%s\n" "#define HAVE_POSIX_SPAWN_FILE_ACTIONS_ADDCLOSEFROM_NP 1" >>confdefs.h
 -
- fi
+-fi
  ac_fn_c_check_func "$LINENO" "pread" "ac_cv_func_pread"
  if test "x$ac_cv_func_pread" = xyes
-@@ -18772,12 +18885,6 @@
+ then :
+@@ -18771,12 +18890,6 @@
+ if test "x$ac_cv_func_sigaction" = xyes
  then :
    printf "%s\n" "#define HAVE_SIGACTION 1" >>confdefs.h
- 
+-
 -fi
 -ac_fn_c_check_func "$LINENO" "sigaltstack" "ac_cv_func_sigaltstack"
 -if test "x$ac_cv_func_sigaltstack" = xyes
 -then :
 -  printf "%s\n" "#define HAVE_SIGALTSTACK 1" >>confdefs.h
--
+ 
  fi
  ac_fn_c_check_func "$LINENO" "sigfillset" "ac_cv_func_sigfillset"
- if test "x$ac_cv_func_sigfillset" = xyes
-@@ -19046,11 +19153,11 @@
+@@ -19046,11 +19159,11 @@
  
  fi
  
@@ -1190,10 +1215,15 @@ index ae70f02f70e..af518f926d8 100755
    ac_fn_c_check_func "$LINENO" "getentropy" "ac_cv_func_getentropy"
  if test "x$ac_cv_func_getentropy" = xyes
  then :
-@@ -19072,6 +19179,53 @@
- 
- fi
- 
+@@ -19067,6 +19180,53 @@
+ if test "x$ac_cv_func_system" = xyes
+ then :
+   printf "%s\n" "#define HAVE_SYSTEM 1" >>confdefs.h
++
++fi
++
++fi
++
 +# tvOS/watchOS have some additional methods that can be found, but not used.
 +if test "$ac_sys_system" != "tvOS" -a "$ac_sys_system" != "watchOS" ; then
 +  ac_fn_c_check_func "$LINENO" "execv" "ac_cv_func_execv"
@@ -1236,25 +1266,21 @@ index ae70f02f70e..af518f926d8 100755
 +if test "x$ac_cv_func_sigaltstack" = xyes
 +then :
 +  printf "%s\n" "#define HAVE_SIGALTSTACK 1" >>confdefs.h
-+
-+fi
-+
-+fi
-+
- { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for $CC options needed to detect all undeclared functions" >&5
- printf %s "checking for $CC options needed to detect all undeclared functions... " >&6; }
- if test ${ac_cv_c_undeclared_builtin_options+y}
-@@ -21868,7 +22022,8 @@
+ 
+ fi
+ 
+@@ -21868,8 +22028,9 @@
  
  
  # check for openpty, login_tty, and forkpty
--
 +# tvOS/watchOS have functions for tty, but can't use them
 +if test "$ac_sys_system" != "tvOS" -a "$ac_sys_system" != "watchOS" ; then
  
+-
    for ac_func in openpty
  do :
-@@ -21964,7 +22119,7 @@
+   ac_fn_c_check_func "$LINENO" "openpty" "ac_cv_func_openpty"
+@@ -21964,7 +22125,7 @@
  fi
  
  done
@@ -1263,7 +1289,7 @@ index ae70f02f70e..af518f926d8 100755
  printf %s "checking for library containing login_tty... " >&6; }
  if test ${ac_cv_search_login_tty+y}
  then :
-@@ -22121,6 +22276,7 @@
+@@ -22121,6 +22282,7 @@
  fi
  
  done
@@ -1271,7 +1297,7 @@ index ae70f02f70e..af518f926d8 100755
  
  # check for long file support functions
  ac_fn_c_check_func "$LINENO" "fseek64" "ac_cv_func_fseek64"
-@@ -22367,10 +22523,10 @@
+@@ -22367,10 +22529,10 @@
  
  done
  
@@ -1284,7 +1310,7 @@ index ae70f02f70e..af518f926d8 100755
  then
  
    for ac_func in clock_settime
-@@ -24602,8 +24758,8 @@
+@@ -24602,8 +24764,8 @@
    LIBPYTHON="\$(BLDLIBRARY)"
  fi
  
@@ -1295,7 +1321,7 @@ index ae70f02f70e..af518f926d8 100755
    MODULE_DEPS_SHARED="$MODULE_DEPS_SHARED \$(PYTHONFRAMEWORKDIR)/\$(PYTHONFRAMEWORK)"
  fi
  
-@@ -27251,7 +27407,7 @@
+@@ -27251,7 +27413,7 @@
  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for device files" >&5
  printf "%s\n" "$as_me: checking for device files" >&6;}
  
@@ -1304,7 +1330,7 @@ index ae70f02f70e..af518f926d8 100755
    ac_cv_file__dev_ptmx=no
    ac_cv_file__dev_ptc=no
  else
-@@ -27684,7 +27840,7 @@
+@@ -27684,7 +27846,7 @@
      with_ensurepip=no ;; #(
    WASI) :
      with_ensurepip=no ;; #(
@@ -1313,7 +1339,7 @@ index ae70f02f70e..af518f926d8 100755
      with_ensurepip=no ;; #(
    *) :
      with_ensurepip=upgrade
-@@ -28703,7 +28859,7 @@
+@@ -28703,7 +28865,7 @@
   ;; #(
      Darwin) :
       ;; #(
@@ -1322,7 +1348,7 @@ index ae70f02f70e..af518f926d8 100755
  
  
  
-@@ -32468,6 +32624,8 @@
+@@ -32468,6 +32630,8 @@
      "Mac/Resources/framework/Info.plist") CONFIG_FILES="$CONFIG_FILES Mac/Resources/framework/Info.plist" ;;
      "Mac/Resources/app/Info.plist") CONFIG_FILES="$CONFIG_FILES Mac/Resources/app/Info.plist" ;;
      "iOS/Resources/Info.plist") CONFIG_FILES="$CONFIG_FILES iOS/Resources/Info.plist" ;;

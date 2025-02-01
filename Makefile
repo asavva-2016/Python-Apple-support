@@ -404,7 +404,7 @@ SDK_ARCHES-$(sdk)=$$(sort $$(subst .,,$$(suffix $$(SDK_TARGETS-$(sdk)))))
 ifneq ($$(findstring simulator,$(sdk)),)
 SDK_SLICE-$(sdk)=$$(OS_LOWER-$(sdk))-$$(shell echo $$(SDK_ARCHES-$(sdk)) | sed "s/ /_/g")-simulator
 else ifneq ($$(findstring maccatalyst,$(sdk)),)
-SDK_SLICE-$(sdk)=macosx-$$(shell echo $$(SDK_ARCHES-$(sdk)) | sed "s/ /_/g")-macabi
+SDK_SLICE-$(sdk)=ios-$$(shell echo $$(SDK_ARCHES-$(sdk)) | sed "s/ /_/g")-maccatalyst
 sdk=macosx
 else
 SDK_SLICE-$(sdk)=$$(OS_LOWER-$(sdk))-$$(shell echo $$(SDK_ARCHES-$(sdk)) | sed "s/ /_/g")
