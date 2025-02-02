@@ -25,25 +25,25 @@ PYTHON_PKG_MICRO_VERSION=$(shell echo $(PYTHON_PKG_VERSION) | grep -Eo "\d+\.\d+
 PYTHON_VER=$(basename $(PYTHON_VERSION))
 
 # The binary releases of dependencies, published at:
-# https://github.com/beeware/cpython-apple-source-deps/releases
-BZIP2_VERSION=1.0.8-1
-LIBFFI_VERSION=3.4.6-1
-MPDECIMAL_VERSION=4.0.0-1
-OPENSSL_VERSION=3.0.15-1
-XZ_VERSION=5.6.2-1
+# https://github.com/asavva-2016/cpython-apple-source-deps/releases
+BZIP2_VERSION=1.0.8-2
+LIBFFI_VERSION=3.4.6-2
+MPDECIMAL_VERSION=4.0.0-2
+OPENSSL_VERSION=3.0.15-2
+XZ_VERSION=5.6.3-1
 
 # Supported OS
 OS_LIST=macOS iOS tvOS watchOS
 
-CURL_FLAGS=--disable --fail --location --create-dirs --progress-bar
+CURL_FLAGS=--disable --fail --location --create-dirs --progress-bar -L
 
 # macOS targets
 TARGETS-macOS=macosx.x86_64 macosx.arm64
 VERSION_MIN-macOS=11.0
 
 # iOS targets
-TARGETS-iOS=iphonesimulator.x86_64 iphonesimulator.arm64 iphoneos.arm64
-VERSION_MIN-iOS=13.0
+TARGETS-iOS=iphonesimulator.x86_64 iphonesimulator.arm64 iphoneos.arm64 maccatalyst.x86_64 maccatalyst.arm64
+VERSION_MIN-iOS=14.2
 
 # tvOS targets
 TARGETS-tvOS=appletvsimulator.x86_64 appletvsimulator.arm64 appletvos.arm64
@@ -117,26 +117,38 @@ downloads/python-$(PYTHON_PKG_VERSION)-macos11.pkg:
 #
 ###########################################################################
 define build-target
+
 target=$1
 os=$2
 
 OS_LOWER-$(target)=$(shell echo $(os) | tr '[:upper:]' '[:lower:]')
 
 # $(target) can be broken up into is composed of $(SDK).$(ARCH)
-SDK-$(target)=$$(basename $(target))
+SDK-$(target)=$$(subst maccatalyst,macosx,$$(basename $(target)))
 ARCH-$(target)=$$(subst .,,$$(suffix $(target)))
 
 ifneq ($(os),macOS)
-	ifeq ($$(findstring simulator,$$(SDK-$(target))),)
-TARGET_TRIPLE-$(target)=$$(ARCH-$(target))-apple-$$(OS_LOWER-$(target))$$(VERSION_MIN-$(os))
-IS_SIMULATOR-$(target)="False"
-	else
+	ifneq ($$(findstring simulator,$$(SDK-$(target))),)
 TARGET_TRIPLE-$(target)=$$(ARCH-$(target))-apple-$$(OS_LOWER-$(target))$$(VERSION_MIN-$(os))-simulator
 IS_SIMULATOR-$(target)="True"
+	else ifneq ($$(findstring maccatalyst,$$(target)),)
+TARGET_TRIPLE-$(target)=$$(ARCH-$(target))-apple-ios$$(VERSION_MIN-$(os))-macabi
+IS_SIMULATOR-$(target)="False"
+	else
+TARGET_TRIPLE-$(target)=$$(ARCH-$(target))-apple-$$(OS_LOWER-$(target))$$(VERSION_MIN-$(os))
+IS_SIMULATOR-$(target)="False"
 	endif
 endif
 
 SDK_ROOT-$(target)=$$(shell xcrun --sdk $$(SDK-$(target)) --show-sdk-path)
+CC-$(target)=xcrun --sdk $$(SDK-$(target)) clang -target $$(TARGET_TRIPLE-$(target))
+CXX-$(target)=xcrun --sdk $$(SDK-$(target)) clang -target $$(TARGET_TRIPLE-$(target))
+CFLAGS-$(target)=\
+	--sysroot=$$(SDK_ROOT-$(target)) \
+	$$(CFLAGS-$(os))
+LDFLAGS-$(target)=\
+	-isysroot $$(SDK_ROOT-$(target)) \
+	$$(CFLAGS-$(os))
 
 ###########################################################################
 # Target: BZip2
@@ -149,7 +161,7 @@ downloads/bzip2-$(BZIP2_VERSION)-$(target).tar.gz:
 	@echo ">>> Download BZip2 for $(target)"
 	mkdir -p downloads
 	curl $(CURL_FLAGS) -o $$@ \
-		https://github.com/beeware/cpython-apple-source-deps/releases/download/BZip2-$(BZIP2_VERSION)/bzip2-$(BZIP2_VERSION)-$(target).tar.gz
+		https://github.com/asavva-2016/cpython-apple-source-deps/releases/download/BZip2-$(BZIP2_VERSION)/bzip2-$(BZIP2_VERSION)-$(target).tar.gz
 
 $$(BZIP2_LIB-$(target)): downloads/bzip2-$(BZIP2_VERSION)-$(target).tar.gz
 	@echo ">>> Install BZip2 for $(target)"
@@ -169,7 +181,7 @@ downloads/xz-$(XZ_VERSION)-$(target).tar.gz:
 	@echo ">>> Download XZ for $(target)"
 	mkdir -p downloads
 	curl $(CURL_FLAGS) -o $$@ \
-		https://github.com/beeware/cpython-apple-source-deps/releases/download/XZ-$(XZ_VERSION)/xz-$(XZ_VERSION)-$(target).tar.gz
+		https://github.com/asavva-2016/cpython-apple-source-deps/releases/download/XZ-$(XZ_VERSION)/xz-$(XZ_VERSION)-$(target).tar.gz
 
 $$(XZ_LIB-$(target)): downloads/xz-$(XZ_VERSION)-$(target).tar.gz
 	@echo ">>> Install XZ for $(target)"
@@ -189,7 +201,7 @@ downloads/mpdecimal-$(MPDECIMAL_VERSION)-$(target).tar.gz:
 	@echo ">>> Download mpdecimal for $(target)"
 	mkdir -p downloads
 	curl $(CURL_FLAGS) -o $$@ \
-		https://github.com/beeware/cpython-apple-source-deps/releases/download/mpdecimal-$(MPDECIMAL_VERSION)/mpdecimal-$(MPDECIMAL_VERSION)-$(target).tar.gz
+		https://github.com/asavva-2016/cpython-apple-source-deps/releases/download/mpdecimal-$(MPDECIMAL_VERSION)/mpdecimal-$(MPDECIMAL_VERSION)-$(target).tar.gz
 
 $$(MPDECIMAL_LIB-$(target)): downloads/mpdecimal-$(MPDECIMAL_VERSION)-$(target).tar.gz
 	@echo ">>> Install mpdecimal for $(target)"
@@ -209,7 +221,7 @@ downloads/openssl-$(OPENSSL_VERSION)-$(target).tar.gz:
 	@echo ">>> Download OpenSSL for $(target)"
 	mkdir -p downloads
 	curl $(CURL_FLAGS) -o $$@ \
-		https://github.com/beeware/cpython-apple-source-deps/releases/download/OpenSSL-$(OPENSSL_VERSION)/openssl-$(OPENSSL_VERSION)-$(target).tar.gz
+		https://github.com/asavva-2016/cpython-apple-source-deps/releases/download/OpenSSL-$(OPENSSL_VERSION)/openssl-$(OPENSSL_VERSION)-$(target).tar.gz
 
 $$(OPENSSL_SSL_LIB-$(target)): downloads/openssl-$(OPENSSL_VERSION)-$(target).tar.gz
 	@echo ">>> Install OpenSSL for $(target)"
@@ -234,7 +246,7 @@ downloads/libffi-$(LIBFFI_VERSION)-$(target).tar.gz:
 	@echo ">>> Download libFFI for $(target)"
 	mkdir -p downloads
 	curl $(CURL_FLAGS) -o $$@ \
-		https://github.com/beeware/cpython-apple-source-deps/releases/download/libFFI-$(LIBFFI_VERSION)/libffi-$(LIBFFI_VERSION)-$(target).tar.gz
+		https://github.com/asavva-2016/cpython-apple-source-deps/releases/download/libFFI-$(LIBFFI_VERSION)/libffi-$(LIBFFI_VERSION)-$(target).tar.gz
 
 $$(LIBFFI_LIB-$(target)): downloads/libffi-$(LIBFFI_VERSION)-$(target).tar.gz
 	@echo ">>> Install libFFI for $(target)"
@@ -285,6 +297,9 @@ $$(PYTHON_SRCDIR-$(target))/Makefile: \
 	cd $$(PYTHON_SRCDIR-$(target)) && \
 		PATH="$(PROJECT_DIR)/$$(PYTHON_SRCDIR-$(target))/$(os)/Resources/bin:$(PATH)" \
 		./configure \
+			CC="$$(CC-$(target))" \
+			CFLAGS="$$(CFLAGS-$(target))" \
+			LDFLAGS="$$(LDFLAGS-$(target))" \
 			LIBLZMA_CFLAGS="-I$$(XZ_INSTALL-$(target))/include" \
 			LIBLZMA_LIBS="-L$$(XZ_INSTALL-$(target))/lib -llzma" \
 			BZIP2_CFLAGS="-I$$(BZIP2_INSTALL-$(target))/include" \
@@ -293,7 +308,7 @@ $$(PYTHON_SRCDIR-$(target))/Makefile: \
 			LIBMPDEC_LIBS="-L$$(MPDECIMAL_INSTALL-$(target))/lib -lmpdec" \
 			LIBFFI_CFLAGS="-I$$(LIBFFI_INSTALL-$(target))/include" \
 			LIBFFI_LIBS="-L$$(LIBFFI_INSTALL-$(target))/lib -lffi" \
-			--host=$$(TARGET_TRIPLE-$(target)) \
+			--host=$$(subst -macabi,,$$(TARGET_TRIPLE-$(target))) \
 			--build=$(HOST_ARCH)-apple-darwin \
 			--with-build-python=$(HOST_PYTHON) \
 			--enable-ipv6 \
@@ -386,10 +401,13 @@ OS_LOWER-$(sdk)=$(shell echo $(os) | tr '[:upper:]' '[:lower:]')
 SDK_TARGETS-$(sdk)=$$(filter $(sdk).%,$$(TARGETS-$(os)))
 SDK_ARCHES-$(sdk)=$$(sort $$(subst .,,$$(suffix $$(SDK_TARGETS-$(sdk)))))
 
-ifeq ($$(findstring simulator,$(sdk)),)
-SDK_SLICE-$(sdk)=$$(OS_LOWER-$(sdk))-$$(shell echo $$(SDK_ARCHES-$(sdk)) | sed "s/ /_/g")
-else
+ifneq ($$(findstring simulator,$(sdk)),)
 SDK_SLICE-$(sdk)=$$(OS_LOWER-$(sdk))-$$(shell echo $$(SDK_ARCHES-$(sdk)) | sed "s/ /_/g")-simulator
+else ifneq ($$(findstring maccatalyst,$(sdk)),)
+SDK_SLICE-$(sdk)=ios-$$(shell echo $$(SDK_ARCHES-$(sdk)) | sed "s/ /_/g")-maccatalyst
+sdk=macosx
+else
+SDK_SLICE-$(sdk)=$$(OS_LOWER-$(sdk))-$$(shell echo $$(SDK_ARCHES-$(sdk)) | sed "s/ /_/g")
 endif
 
 # Expand the build-target macro for target on this OS
